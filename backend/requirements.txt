@@ -1,0 +1,6 @@
+Flask
+pymupdf
+pytesseract
+transformers
+requests
+python-dotenv

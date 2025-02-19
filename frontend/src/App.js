@@ -1,6 +1,13 @@
-import React, { useState } from 'react';
-import { useDropzone } from 'react-dropzone';
-import { Button, CircularProgress, Typography, Box, Alert } from '@mui/material';
+
+import React, { useState, useEffect } from "react";
+import { useDropzone } from "react-dropzone";
+import {
+  Button,
+  CircularProgress,
+  Typography,
+  Box,
+  Alert,
+} from "@mui/material";
 
 function App() {
   const [uploadedFile, setUploadedFile] = useState(null);
@@ -8,47 +15,72 @@ function App() {
   const [analysisResult, setAnalysisResult] = useState(null);
   const [error, setError] = useState(null);
 
+  useEffect(() => {
+    const testServerConnection = async () => {
+      try {
+        const response = await fetch("/");
+        if (!response.ok) throw new Error("Server responded with an error.");
+
+        const data = await response.json();
+        console.log("Server Response:", data.message);
+      } catch (error) {
+        console.error("Network error:", error.message);
+      }
+    };
+
+    testServerConnection();
+  }, [])
 
   const onDrop = async (acceptedFiles) => {
+    if (acceptedFiles.length === 0) return;
+    const file = acceptedFiles[0];
+    console.log("Selected file:", file);
 
-    if (acceptedFiles.length > 0) {
-      setUploadedFile(acceptedFiles[0]);
-      setLoading(true);
-      setError(null); // Clear previous errors
-      setAnalysisResult(null); // Clear previous results
+    setUploadedFile(file);
+    setLoading(true);
+    setError(null);
+    setAnalysisResult(null);
 
-      const formData = new FormData();
-      formData.append('file', acceptedFiles[0]);
+    const formData = new FormData();
+    formData.append("file", file);
+    console.log("FormData:", formData);
+
+    for (let [key, value] of formData.entries()) {
+      console.log(`${key}:`, value);
+    }
+    try {
+      const response = await fetch("/api/analyze", {
+        method: "POST",
+        body: formData,
+      });
+
+      const responseText = await response.text();
+      console.log("Raw Response:", responseText);
 
       try {
-        const response = await fetch('/api/analyze', {
-          method: 'POST',
-          body: formData,
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          setAnalysisResult(data);
-        } else {
-          // Handle errors from the backend
-          const errorData = await response.json();
-          setError(errorData.error || 'An error occurred during analysis.');
-        }
-      } catch (error) {
-        setError('Network error: Could not connect to the server.');
-
-      } finally {
-        setLoading(false);
+        const data = JSON.parse(responseText);
+        if (!response.ok) throw new Error(data.error || "Server error occurred.");
+        setAnalysisResult(data);
+      } catch (jsonError) {
+        throw new Error("Unexpected response format: " + responseText);
       }
+    } catch (error) {
+      console.error("Upload error:", error.message);
+      setError(error.message || "Network error: Could not connect to the server.");
+    } finally {
+      setLoading(false);
     }
+
   };
+
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
-    accept: {
-      'application/pdf': ['.pdf'],
-      'image/*': ['.png', '.jpg', '.jpeg']
-    }
+    accept: [".pdf", ".png", ".jpg", ".jpeg"],
+    // accept: {
+    //   "application/pdf": [".pdf"],
+    //   "image/*": [".png", ".jpg", ".jpeg"],
+    // },
   });
 
   return (
@@ -57,18 +89,23 @@ function App() {
         Social Media Content Analyzer
       </Typography>
 
-      <div {...getRootProps()} style={{
-        border: '2px dashed gray',
-        padding: '20px',
-        textAlign: 'center',
-        cursor: 'pointer',
-        marginBottom: '20px'
-      }}>
+      <div
+        {...getRootProps()}
+        style={{
+          border: "2px dashed gray",
+          padding: "20px",
+          textAlign: "center",
+          cursor: "pointer",
+          marginBottom: "20px",
+        }}
+      >
         <input {...getInputProps()} />
         {isDragActive ? (
           <Typography>Drop the files here...</Typography>
         ) : (
-          <Typography>Drag 'n' drop files here, or click to select files</Typography>
+          <Typography>
+            Drag "n" drop files here, or click to select files
+          </Typography>
         )}
       </div>
 
@@ -79,7 +116,13 @@ function App() {
       )}
 
       {loading && (
-        <Box sx={{ display: 'flex', justifyContent: 'center', marginTop: 2 }}>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            marginTop: 2,
+          }}
+        >
           <CircularProgress />
         </Box>
       )}
@@ -93,13 +136,20 @@ function App() {
       {analysisResult && (
         <Box sx={{ marginTop: 2 }}>
           <Typography variant="h6">Analysis Result:</Typography>
-          <Box sx={{ overflow: 'auto', maxHeight: '400px', border: '1px solid gray', padding: 2 }}>
-            <pre>{JSON.stringify(analysisResult, null, 2)}</pre>
+          <Box
+            sx={{
+              overflow: "auto",
+              maxHeight: "400px",
+              border: "1px solid gray",
+              padding: 2,
+            }}
+          >
+            <pre>
+              {JSON.stringify(analysisResult, null, 2)}
+            </pre>
           </Box>
         </Box>
       )}
-
-
     </Box>
   );
 }

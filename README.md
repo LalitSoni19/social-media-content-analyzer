@@ -5,11 +5,9 @@
 This project is a web application that analyzes social media content drafts, providing users with insights and suggestions to improve engagement.  Users can upload PDF or image files containing their draft posts, and the application extracts the text, performs sentiment analysis (and potentially other NLP tasks), and displays the results.
 
 ## My Approach
-For this project, I built a web application that helps people polish their social media content before posting.  The idea is simple: users upload a draft of their post (either a PDF or an image), and the app analyzes it to provide feedback.
+For this project, I chose a React frontend for a clean, interactive user experience. I used Material-UI for the UI components, which saved a ton of time, and react-dropzone to make the file uploads super easy. The backend is built with Python and Flask, which is great for this kind of project because it's lightweight and integrates well with AI/ML libraries.
 
-I chose a React frontend for a clean, interactive user experience.  I used Material-UI for the UI components, which saved a ton of time, and react-dropzone to make the file uploads super easy. The backend is built with Python and Flask, which is great for this kind of project because it's lightweight and integrates well with AI/ML libraries.
-
-The core of the app is text extraction.  For PDFs, I used PyMuPDF because it's fast and handles formatting well. For images, I went with Tesseract OCR, a reliable open-source engine. Once the text is extracted, I send it to Hugging Face's Inference API.  I'm using a pre-trained sentiment analysis model to give users a sense of how their post might be perceived. The frontend then displays both the raw extracted text and the analysis results.
+The core of the app is text extraction. For PDFs, I used PyMuPDF because it's fast and handles formatting well. For images, I went with Tesseract OCR, a reliable open-source engine. Once the text is extracted, I send it to Hugging Face's Inference API.  I'm using a pre-trained sentiment analysis model to give users a sense of how their post might be perceived. The frontend then displays both the raw extracted text and the analysis results.
 
 I made sure to include good error handling throughout, so if something goes wrong (like an invalid file or a network issue), the user gets a clear message. The whole thing is designed to be pretty straightforward to use and hopefully helpful!
 
